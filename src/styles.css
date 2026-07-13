@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+/*
+ * snag Design System tokens — source of truth: docs/design-handoff/HANDOFF.md
+ * Warm neutrals + a single signature orange. DM Sans 400/700 only.
+ */
+@theme {
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Brand (signature orange) */
+  --color-brand-100: rgb(255 249 247);
+  --color-brand-200: rgb(252 242 234);
+  --color-brand-300: rgb(252 224 204);
+  --color-brand-400: rgb(252 199 161);
+  --color-brand-500: rgb(252 145 71);
+  --color-brand-600: rgb(252 105 2); /* primary */
+  --color-brand-700: rgb(194 81 2); /* hover */
+  --color-brand-800: rgb(153 64 1); /* press */
+
+  /* Warm neutrals */
+  --color-neutral-200: rgb(247 241 239); /* fills */
+  --color-neutral-300: rgb(168 164 162);
+  --color-neutral-400: rgb(102 100 98);
+  --color-neutral-500: rgb(38 38 37); /* body text */
+
+  /* Display heading ink */
+  --color-ink-display: rgb(27 18 48);
+
+  /* Status */
+  --color-success-200: rgb(208 254 163);
+  --color-success-700: rgb(56 108 3);
+  --color-warn-200: rgb(255 222 185);
+  --color-danger-200: rgb(255 181 181);
+  --color-danger-500: rgb(198 8 8);
+  --color-info-200: rgb(190 221 255);
+  --color-info-500: rgb(11 102 199);
+
+  /* Shadows (soft warm-gray) */
+  --shadow-card-hover: 0 8px 24px rgb(36 36 36 / 0.12);
+  --shadow-login: 0 24px 60px rgb(36 36 36 / 0.12);
+  --shadow-lg: 0 12px 32px rgb(36 36 36 / 0.18);
+
+  /* Motion — restrained per design system, no bounces */
+  --ease-snag: cubic-bezier(0.2, 0, 0, 1);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--color-neutral-500);
+  background: var(--color-brand-100);
+  -webkit-font-smoothing: antialiased;
+}
