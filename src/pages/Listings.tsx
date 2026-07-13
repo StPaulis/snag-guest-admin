@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, Image } from 'lucide-react';
 import { useListings } from '../hooks';
-import { PhotoBlock, Spinner, StatusPill } from '../components/ui';
+import { Button, PhotoBlock, Spinner, StatusPill } from '../components/ui';
 
 export default function Listings() {
   const navigate = useNavigate();
-  const { data, isLoading } = useListings();
+  const { items, total, isLoading, hasMore, fetchMore, isFetchingMore } = useListings();
   const [query, setQuery] = useState('');
 
   if (isLoading) return <Spinner />;
 
   const q = query.trim().toLowerCase();
-  const filtered = (data ?? []).filter(
+  const filtered = items.filter(
     (l) => !q || l.title.toLowerCase().includes(q) || l.area.toLowerCase().includes(q),
   );
 
@@ -22,7 +22,7 @@ export default function Listings() {
         <div>
           <h1 className="m-0 text-[28px] leading-[34px] font-bold text-ink-display">listings</h1>
           <p className="mt-1 mb-0 text-[15px] text-neutral-400">
-            {(data ?? []).length} properties on snag
+            {total} properties on snag
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2.5">
@@ -70,6 +70,19 @@ export default function Listings() {
           </p>
         )}
       </div>
+
+      {hasMore && !q && (
+        <div className="mt-7 flex justify-center">
+          <Button
+            variant="secondary"
+            onClick={() => void fetchMore()}
+            disabled={isFetchingMore}
+            className="px-6"
+          >
+            {isFetchingMore ? 'loading…' : 'load more'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

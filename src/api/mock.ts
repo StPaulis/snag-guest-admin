@@ -2,7 +2,15 @@
  * In-memory GuestAdminApi — mirrors the design-prototype dataset
  * (6 listings, 3 pending requests, matching chats). Used when VITE_USE_MOCKS=true.
  */
-import type { Booking, ChatSummary, GuestAdminApi, Listing, Message } from './models';
+import type {
+  Booking,
+  ChatSummary,
+  GuestAdminApi,
+  Listing,
+  Message,
+  Page,
+  PageParams,
+} from './models';
 
 const listings: Listing[] = [
   { id: 'l1', title: 'Sunny 1BR in Williamsburg', area: 'Williamsburg, Brooklyn', price: 2850, status: 'active', beds: 1, baths: 1, window: 'Jun 1 – Aug 31', bookingCount: 3, desc: 'Bright, plant-filled one-bedroom on a quiet tree-lined street. Two blocks from the Bedford L, with a private roof deck shared by two units.', amenities: ['wifi', 'laundry in unit', 'dishwasher', 'roof deck', 'pets ok'], photos: [] },
@@ -61,18 +69,23 @@ const threads: Record<string, Message[]> = {
 
 const delay = (ms = 180) => new Promise((r) => setTimeout(r, ms));
 
+function paginate<T>(all: T[], { page, limit }: PageParams): Page<T> {
+  const start = (page - 1) * limit;
+  return { items: all.slice(start, start + limit), total: all.length };
+}
+
 export const mockApi: GuestAdminApi = {
-  async getListings() {
+  async getListings(params) {
     await delay();
-    return [...listings];
+    return paginate(listings, params);
   },
   async getListing(id) {
     await delay();
     return listings.find((l) => l.id === id);
   },
-  async getBookings() {
+  async getBookings(params) {
     await delay();
-    return [...bookings];
+    return paginate(bookings, params);
   },
   async getBooking(id) {
     await delay();
@@ -88,9 +101,9 @@ export const mockApi: GuestAdminApi = {
     const b = bookings.find((x) => x.id === id);
     if (b) b.status = 'cancelled';
   },
-  async getChats() {
+  async getChats(params) {
     await delay();
-    return [...chats];
+    return paginate(chats, params);
   },
   async getMessages(chatId) {
     await delay();
@@ -109,5 +122,16 @@ export const mockApi: GuestAdminApi = {
   async markChatRead(chatId) {
     const c = chats.find((x) => x.id === chatId);
     if (c) c.unread = 0;
+  },
+  async getStats() {
+    await delay();
+    return {
+      activeListings: listings.filter((l) => l.status === 'active').length,
+      pendingRequests: bookings.filter((b) => b.status === 'requested').length,
+      monthRevenue: bookings
+        .filter((b) => b.status === 'paid')
+        .reduce((s, b) => s + b.monthly, 0),
+      unreadMessages: chats.reduce((s, c) => s + c.unread, 0),
+    };
   },
 };

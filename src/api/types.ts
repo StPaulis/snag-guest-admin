@@ -159,6 +159,14 @@ export interface ApiChatRoom {
   createdAt: string;
 }
 
+/** GET /admin-guest/stats response (AdminGuestStatsDto). Money in cents. */
+export interface ApiGuestStats {
+  activeListings: number;
+  pendingRequests: number;
+  monthRevenueCents: number;
+  unread: number;
+}
+
 export interface ApiChatMessage {
   id: string;
   userId?: string;

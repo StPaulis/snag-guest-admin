@@ -96,6 +96,7 @@ function UserBlock() {
 export default function Shell({ navStyle = 'sidebar' }: { navStyle?: NavStyle }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const unread = useUnreadCount();
+  const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
@@ -136,8 +137,17 @@ export default function Shell({ navStyle = 'sidebar' }: { navStyle?: NavStyle })
           <Menu size={22} strokeWidth={2} />
         </button>
         <BrandBlock size={30} />
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
           <UnreadPill count={unread} />
+          {user && <Avatar name={user.name} src={user.avatar} size={30} />}
+          <button
+            onClick={() => void logout()}
+            aria-label="log out"
+            className="flex items-center gap-1.5 rounded-[10px] px-2.5 py-2 text-[13px] font-bold text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-500"
+          >
+            <LogOut size={18} strokeWidth={2} />
+            <span className="max-[380px]:hidden">log out</span>
+          </button>
         </div>
       </div>
 

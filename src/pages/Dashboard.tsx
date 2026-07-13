@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router';
-import { useBookings, useChats, useListings } from '../hooks';
+import { useBookings, useChats, useStats } from '../hooks';
 import { Avatar, Card, Spinner, StatusPill } from '../components/ui';
 import { tenant } from '../tenant';
 
@@ -29,18 +29,17 @@ function PanelHeader({ title, to }: { title: string; to: string }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const listings = useListings();
+  const stats = useStats();
   const bookings = useBookings();
   const chats = useChats();
 
-  if (listings.isLoading || bookings.isLoading || chats.isLoading) return <Spinner />;
+  if (stats.isLoading || bookings.isLoading || chats.isLoading) return <Spinner />;
 
-  const active = (listings.data ?? []).filter((l) => l.status === 'active').length;
-  const pending = (bookings.data ?? []).filter((b) => b.status === 'requested').length;
-  const unread = (chats.data ?? []).reduce((s, c) => s + c.unread, 0);
-  const monthRevenue = (bookings.data ?? [])
-    .filter((b) => b.status === 'paid')
-    .reduce((s, b) => s + b.monthly, 0);
+  const recentBookings = bookings.items.slice(0, 4);
+  const recentChats = chats.items.slice(0, 4);
+
+  const { activeListings = 0, pendingRequests = 0, monthRevenue = 0, unreadMessages = 0 } =
+    stats.data ?? {};
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -56,17 +55,17 @@ export default function Dashboard() {
       <p className="mt-1 mb-6 text-[15px] text-neutral-400">{today}</p>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
-        <Stat label="active listings" value={String(active)} />
-        <Stat label="pending requests" value={String(pending)} accent />
+        <Stat label="active listings" value={String(activeListings)} />
+        <Stat label="pending requests" value={String(pendingRequests)} accent />
         <Stat label="this month" value={`$${monthRevenue.toLocaleString()}`} />
-        <Stat label="unread messages" value={String(unread)} />
+        <Stat label="unread messages" value={String(unreadMessages)} />
       </div>
 
       <div className="mt-5 grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-5">
         <Card>
           <PanelHeader title="recent bookings" to="/agreements" />
           <div>
-            {(bookings.data ?? []).slice(0, 4).map((b) => (
+            {recentBookings.map((b) => (
               <button
                 key={b.id}
                 onClick={() => navigate(`/agreements/${b.id}`)}
@@ -90,7 +89,7 @@ export default function Dashboard() {
         <Card>
           <PanelHeader title="recent messages" to="/inbox" />
           <div>
-            {(chats.data ?? []).slice(0, 4).map((c) => (
+            {recentChats.map((c) => (
               <button
                 key={c.id}
                 onClick={() => navigate(`/inbox/${c.id}`)}

@@ -18,8 +18,8 @@ export default function Chat() {
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const chat = (chats.data ?? []).find((c) => c.id === chatId);
-  const booking = (bookings.data ?? []).find((b) => b.id === chat?.agId || b.chatId === chatId);
+  const chat = chats.items.find((c) => c.id === chatId);
+  const booking = bookings.items.find((b) => b.id === chat?.agId || b.chatId === chatId);
 
   // Opening a chat zeroes its unread count
   useEffect(() => {

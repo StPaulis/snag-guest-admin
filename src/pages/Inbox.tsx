@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router';
 import { useChats } from '../hooks';
-import { Avatar, Card, Spinner } from '../components/ui';
+import { Avatar, Button, Card, Spinner } from '../components/ui';
 
 export default function Inbox() {
   const navigate = useNavigate();
-  const { data, isLoading } = useChats();
+  const { items, isLoading, hasMore, fetchMore, isFetchingMore } = useChats();
 
   if (isLoading) return <Spinner />;
 
@@ -14,7 +14,7 @@ export default function Inbox() {
       <p className="mt-1 mb-5 text-[15px] text-neutral-400">conversations with your renters</p>
 
       <Card>
-        {(data ?? []).map((c) => (
+        {items.map((c) => (
           <button
             key={c.id}
             onClick={() => navigate(`/inbox/${c.id}`)}
@@ -38,10 +38,23 @@ export default function Inbox() {
             </div>
           </button>
         ))}
-        {(data ?? []).length === 0 && (
+        {items.length === 0 && (
           <p className="py-10 text-center text-[15px] text-neutral-400">no conversations yet</p>
         )}
       </Card>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="secondary"
+            onClick={() => void fetchMore()}
+            disabled={isFetchingMore}
+            className="px-6"
+          >
+            {isFetchingMore ? 'loading…' : 'load more'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

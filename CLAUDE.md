@@ -23,7 +23,7 @@ src/
     models.ts    UI view-models + the GuestAdminApi interface — pages consume ONLY these
     types.ts     raw snag-api entities/enums (mirror of snag-api)
     adapters.ts  snag-api entity → view-model mapping (cents→dollars, status mapping, dates)
-    real.ts      GuestAdminApi impl against snag-api /admin/* endpoints
+    real.ts      GuestAdminApi impl against snag-api /admin-guest/* endpoints
     mock.ts      in-memory GuestAdminApi impl (prototype dataset)
     http.ts      fetch wrapper: Firebase bearer token, strict query building
     index.ts     picks real vs mock via VITE_USE_MOCKS
@@ -66,12 +66,16 @@ screens from existing components, verify against the spec (both shells, <860px d
 
 Full mapping: `docs/API_MAPPING.md`. Essentials:
 
-- Base URL `VITE_API_URL` (staging: `https://api-staging.services.joinsnag.com`), Swagger at `/docs`.
-- Auth: `Authorization: Bearer <firebase idToken>` with `roles:['admin']` custom claim (AdminGuard).
+- Base URL `VITE_API_URL` (local: `http://localhost:3025`, staging:
+  `https://api-staging.services.joinsnag.com`), Swagger at `/docs`.
+- The portal uses the dedicated `/admin-guest/*` module (posts, agreements + accept/decline,
+  chat-rooms, chat-messages, stats). Auth: `Authorization: Bearer <firebase idToken>` with a
+  company-scoped `guest-admin` claim (`POST /admin/auth/guest-admin/:userId` `{companyId}`).
+- Tenancy is server-side; `VITE_TENANT_HOST_USER_ID` is still required for chat (me/them
+  perspective + sender `userId` on send).
 - Lists: send `page` (1-based) + `limit`; responses are `{ data, total }`.
 - snag-api ValidationPipe is strict (`forbidNonWhitelisted`) — never send params not in the DTO.
-- No tenant scoping exists server-side yet; `real.ts` scopes by `VITE_TENANT_HOST_USER_ID`.
-  When dedicated `/admin-guest/*` endpoints land, change ONLY `api/real.ts` (+ http auth if needed).
+- Remaining gaps (read receipts, sender inference): see `docs/API_MAPPING.md` § Remaining gaps.
 
 ## Verification checklist (before declaring work done)
 

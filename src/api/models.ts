@@ -79,16 +79,29 @@ export interface DashboardStats {
   unreadMessages: number;
 }
 
+/** 1-based paging request. `limit` defaults to 30 (see hooks.ts DEFAULT_LIMIT). */
+export interface PageParams {
+  page: number;
+  limit: number;
+}
+
+/** A page of results plus the server-side total, for real pagination. */
+export interface Page<T> {
+  items: T[];
+  total: number;
+}
+
 /** The single data-access interface every page uses. Real + mock both implement it. */
 export interface GuestAdminApi {
-  getListings(): Promise<Listing[]>;
+  getListings(params: PageParams): Promise<Page<Listing>>;
   getListing(id: string): Promise<Listing | undefined>;
-  getBookings(): Promise<Booking[]>;
+  getBookings(params: PageParams): Promise<Page<Booking>>;
   getBooking(id: string): Promise<Booking | undefined>;
   acceptBooking(id: string): Promise<void>;
   declineBooking(id: string): Promise<void>;
-  getChats(): Promise<ChatSummary[]>;
+  getChats(params: PageParams): Promise<Page<ChatSummary>>;
   getMessages(chatId: string): Promise<Message[]>;
   sendMessage(chatId: string, text: string): Promise<void>;
   markChatRead(chatId: string): Promise<void>;
+  getStats(): Promise<DashboardStats>;
 }

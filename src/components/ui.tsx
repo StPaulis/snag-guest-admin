@@ -57,12 +57,14 @@ export function Avatar({ name, src, size = 36 }: { name: string; src?: string; s
 
 /* --------------------------------- buttons --------------------------------- */
 
-type Variant = 'primary' | 'accept' | 'declineOutline' | 'ghost';
+type Variant = 'primary' | 'secondary' | 'accept' | 'declineOutline' | 'ghost';
 
 const VARIANTS: Record<Variant, string> = {
   // press darkens (→ brand-800), no lift/scale — per design system motion rules
   primary:
     'bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800 disabled:opacity-50',
+  secondary:
+    'bg-white text-neutral-500 hover:bg-neutral-200 active:bg-neutral-200 disabled:opacity-50',
   accept: 'bg-success-700 text-white hover:opacity-90 active:opacity-80',
   declineOutline:
     'border border-danger-500 text-danger-500 bg-transparent hover:bg-danger-200',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { BadgeCheck } from 'lucide-react';
 import { useBookings } from '../hooks';
-import { Avatar, Card, Spinner, StatusPill } from '../components/ui';
+import { Avatar, Button, Card, Spinner, StatusPill } from '../components/ui';
 
 const FILTERS = ['all', 'paid', 'requested', 'cancelled'] as const;
 type Filter = (typeof FILTERS)[number];
@@ -19,12 +19,12 @@ const GRID = 'grid grid-cols-[1.4fr_1.2fr_1.2fr_.8fr_.8fr] items-center gap-3 px
 
 export default function Agreements() {
   const navigate = useNavigate();
-  const { data, isLoading } = useBookings();
+  const { items, isLoading, hasMore, fetchMore, isFetchingMore } = useBookings();
   const [filter, setFilter] = useState<Filter>('all');
 
   if (isLoading) return <Spinner />;
 
-  const filtered = (data ?? []).filter((b) => filter === 'all' || b.status === filter);
+  const filtered = items.filter((b) => filter === 'all' || b.status === filter);
 
   return (
     <div className="mx-auto max-w-[1080px]">
@@ -80,6 +80,19 @@ export default function Agreements() {
           <p className="py-10 text-center text-[15px] text-neutral-400">no {filter} bookings</p>
         )}
       </Card>
+
+      {hasMore && filter === 'all' && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="secondary"
+            onClick={() => void fetchMore()}
+            disabled={isFetchingMore}
+            className="px-6"
+          >
+            {isFetchingMore ? 'loading…' : 'load more'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

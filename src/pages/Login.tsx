@@ -5,7 +5,7 @@ import { Button } from '../components/ui';
 import { tenant } from '../tenant';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +20,7 @@ export default function Login() {
       await login(email, password);
       navigate('/', { replace: true });
     } catch {
+      await logout().catch(() => {}); // clear any partial session on failure
       setError('invalid email or password');
     } finally {
       setBusy(false);

@@ -1,5 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { guestAdminApi } from './api';
+import type { Page, PageParams } from './api/models';
+
+/** Page size for every paginated list. The app loads more pages on demand. */
+export const DEFAULT_LIMIT = 30;
 
 export const keys = {
   listings: ['listings'] as const,
@@ -8,22 +17,53 @@ export const keys = {
   booking: (id: string) => ['bookings', id] as const,
   chats: ['chats'] as const,
   messages: (chatId: string) => ['chats', chatId, 'messages'] as const,
+  stats: ['stats'] as const,
 };
 
+/**
+ * Real pagination over a `{ items, total }` endpoint. Loads page 1 (30 items) up
+ * front and exposes `fetchMore`/`hasMore` so the UI can append further pages.
+ */
+function usePaginated<T>(
+  key: readonly unknown[],
+  fetcher: (params: PageParams) => Promise<Page<T>>,
+  options: { refetchInterval?: number } = {},
+) {
+  const query = useInfiniteQuery({
+    queryKey: key,
+    queryFn: ({ pageParam }) => fetcher({ page: pageParam, limit: DEFAULT_LIMIT }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((n, p) => n + p.items.length, 0);
+      return loaded < lastPage.total ? allPages.length + 1 : undefined;
+    },
+    refetchInterval: options.refetchInterval,
+  });
+  return {
+    items: (query.data?.pages ?? []).flatMap((p) => p.items),
+    total: query.data?.pages[0]?.total ?? 0,
+    isLoading: query.isLoading,
+    isError: query.isError,
+    hasMore: query.hasNextPage,
+    fetchMore: query.fetchNextPage,
+    isFetchingMore: query.isFetchingNextPage,
+  };
+}
+
 export const useListings = () =>
-  useQuery({ queryKey: keys.listings, queryFn: () => guestAdminApi.getListings() });
+  usePaginated(keys.listings, (p) => guestAdminApi.getListings(p));
+
+export const useBookings = () =>
+  usePaginated(keys.bookings, (p) => guestAdminApi.getBookings(p));
+
+export const useChats = () =>
+  usePaginated(keys.chats, (p) => guestAdminApi.getChats(p), { refetchInterval: 30_000 });
 
 export const useListing = (id: string) =>
   useQuery({ queryKey: keys.listing(id), queryFn: () => guestAdminApi.getListing(id) });
 
-export const useBookings = () =>
-  useQuery({ queryKey: keys.bookings, queryFn: () => guestAdminApi.getBookings() });
-
 export const useBooking = (id: string) =>
   useQuery({ queryKey: keys.booking(id), queryFn: () => guestAdminApi.getBooking(id) });
-
-export const useChats = () =>
-  useQuery({ queryKey: keys.chats, queryFn: () => guestAdminApi.getChats(), refetchInterval: 30_000 });
 
 export const useMessages = (chatId: string) =>
   useQuery({
@@ -32,9 +72,12 @@ export const useMessages = (chatId: string) =>
     refetchInterval: 15_000,
   });
 
+export const useStats = () =>
+  useQuery({ queryKey: keys.stats, queryFn: () => guestAdminApi.getStats() });
+
 export const useUnreadCount = () => {
-  const { data } = useChats();
-  return (data ?? []).reduce((sum, c) => sum + c.unread, 0);
+  const { items } = useChats();
+  return items.reduce((sum, c) => sum + c.unread, 0);
 };
 
 /** accept/decline — reflected everywhere (list, detail, dashboard, chat banner) via invalidation */
@@ -44,6 +87,7 @@ export function useBookingDecision() {
     void qc.invalidateQueries({ queryKey: keys.bookings });
     void qc.invalidateQueries({ queryKey: keys.listings });
     void qc.invalidateQueries({ queryKey: keys.chats });
+    void qc.invalidateQueries({ queryKey: keys.stats });
   };
   const accept = useMutation({
     mutationFn: (id: string) => guestAdminApi.acceptBooking(id),

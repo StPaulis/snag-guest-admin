@@ -9,10 +9,19 @@ import {
   type ApiAgreement,
   type ApiChatMessage,
   type ApiChatRoom,
+  type ApiGuestStats,
   type ApiPost,
   type ApiUser,
 } from './types';
-import type { Booking, BookingStatus, ChatSummary, Listing, Message, Renter } from './models';
+import type {
+  Booking,
+  BookingStatus,
+  ChatSummary,
+  DashboardStats,
+  Listing,
+  Message,
+  Renter,
+} from './models';
 
 const cents = (v?: number) => Math.round((v ?? 0) / 100);
 
@@ -151,6 +160,15 @@ export function toChatSummary(room: ApiChatRoom, hostUserId?: string): ChatSumma
     lastMessage: room.lastChatMessage?.text ?? '',
     time: formatTime(room.lastChatMessage?.createdAt ?? room.createdAt),
     unread: room.unreadMessagesCount ?? 0,
+  };
+}
+
+export function toDashboardStats(s: ApiGuestStats): DashboardStats {
+  return {
+    activeListings: s.activeListings,
+    pendingRequests: s.pendingRequests,
+    monthRevenue: cents(s.monthRevenueCents),
+    unreadMessages: s.unread,
   };
 }
 
