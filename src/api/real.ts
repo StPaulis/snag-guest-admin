@@ -5,9 +5,11 @@
  * - Tenancy is server-side: the caller's Firebase token carries the `guest-admin`
  *   role scoped to a company (granted via POST /admin/auth/guest-admin/:id), and
  *   every /admin-guest endpoint filters to that company. No client-side scoping.
- * - tenant.hostUserId is still needed for chat: it decides the "me"/"them"
- *   perspective and is the required `userId` sender on POST /admin-guest/chat-messages
- *   (the API does not yet infer the sender from the token).
+ * - Chat sender/perspective: the company side of a room is detected from
+ *   chatUsers[].user.companyId (adapters.ts). Replies are sent as the room's
+ *   company-side participant (POST /admin-guest/chat-messages requires a
+ *   `userId` that belongs to the company — it is not inferred from the token).
+ *   tenant.hostUserId remains only as a legacy fallback.
  */
 import { api } from './http';
 import { tenant } from '../tenant';
@@ -89,20 +91,24 @@ export const realApi: GuestAdminApi = {
     return res.data.map((m) => toMessage(m, tenant.hostUserId));
   },
 
-  async sendMessage(chatId: string, text: string): Promise<void> {
+  async sendMessage(chatId: string, text: string, asUserId?: string): Promise<void> {
+    const userId = asUserId ?? tenant.hostUserId;
+    if (!userId) {
+      throw new Error('No company member found in this chat room to reply as');
+    }
     await api('/admin-guest/chat-messages', {
       method: 'POST',
       body: {
         chatRoomId: chatId,
-        userId: tenant.hostUserId,
+        userId,
         text,
         type: MessageType.TEXT,
       },
     });
   },
 
-  async markChatRead(): Promise<void> {
-    // /admin-guest has no read-receipt endpoint yet — no-op (see docs/API_MAPPING.md gaps).
+  async markChatRead(chatId: string): Promise<void> {
+    await api(`/admin-guest/chat-rooms/${chatId}/read`, { method: 'POST' });
   },
 
   async getStats(): Promise<DashboardStats> {

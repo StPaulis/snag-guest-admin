@@ -71,11 +71,12 @@ Full mapping: `docs/API_MAPPING.md`. Essentials:
 - The portal uses the dedicated `/admin-guest/*` module (posts, agreements + accept/decline,
   chat-rooms, chat-messages, stats). Auth: `Authorization: Bearer <firebase idToken>` with a
   company-scoped `guest-admin` claim (`POST /admin/auth/guest-admin/:userId` `{companyId}`).
-- Tenancy is server-side; `VITE_TENANT_HOST_USER_ID` is still required for chat (me/them
-  perspective + sender `userId` on send).
+- Tenancy is server-side. Chat me/them perspective and the reply sender come from
+  `companyId` on the hydrated chat users/messages (see `docs/API_MAPPING.md` § Chat sender);
+  `VITE_TENANT_HOST_USER_ID` is only a legacy fallback.
 - Lists: send `page` (1-based) + `limit`; responses are `{ data, total }`.
 - snag-api ValidationPipe is strict (`forbidNonWhitelisted`) — never send params not in the DTO.
-- Remaining gaps (read receipts, sender inference): see `docs/API_MAPPING.md` § Remaining gaps.
+- Remaining gaps: see `docs/API_MAPPING.md` § Remaining gaps.
 
 ## Verification checklist (before declaring work done)
 

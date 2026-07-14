@@ -63,11 +63,16 @@ export interface ChatSummary {
   lastMessage: string;
   time: string;
   unread: number;
+  /** company-side participant of this room — replies are always sent as this user */
+  hostId?: string;
+  hostName?: string;
 }
 
 export interface Message {
   id: string;
+  /** 'me' = sent by any of our company's admins, 'them' = the renter */
   from: 'me' | 'them';
+  senderName?: string;
   text: string;
   time: string;
 }
@@ -101,7 +106,7 @@ export interface GuestAdminApi {
   declineBooking(id: string): Promise<void>;
   getChats(params: PageParams): Promise<Page<ChatSummary>>;
   getMessages(chatId: string): Promise<Message[]>;
-  sendMessage(chatId: string, text: string): Promise<void>;
+  sendMessage(chatId: string, text: string, asUserId?: string): Promise<void>;
   markChatRead(chatId: string): Promise<void>;
   getStats(): Promise<DashboardStats>;
 }

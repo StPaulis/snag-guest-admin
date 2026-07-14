@@ -31,39 +31,39 @@ const bookings: Booking[] = [
 ];
 
 const chats: ChatSummary[] = [
-  { id: 'c2', agId: 'a2', name: 'Jordan Alvarez', firstName: 'Jordan', listing: 'Sunny 1BR in Williamsburg', lastMessage: 'Just sent the booking request — really excited about the roof deck!', time: '9:41 AM', unread: 2 },
-  { id: 'c3', agId: 'a3', name: 'Priya Raman', firstName: 'Priya', listing: 'Loft 2BR on Kent Ave', lastMessage: 'Would you consider a slightly earlier move-in, like Aug 28?', time: 'Yesterday', unread: 1 },
-  { id: 'c1', agId: 'a1', name: 'Maya Chen', firstName: 'Maya', listing: 'Studio near Domino Park', lastMessage: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday', unread: 0 },
-  { id: 'c6', agId: 'a6', name: 'Diego Fernández', firstName: 'Diego', listing: 'Sunny 1BR in Williamsburg', lastMessage: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue', unread: 0 },
-  { id: 'c4', agId: 'a4', name: 'Sam Okafor', firstName: 'Sam', listing: 'Bright 2BR in Bushwick', lastMessage: 'The AC filter arrived, installed it this morning 👍', time: 'Mon', unread: 0 },
-  { id: 'c5', agId: 'a5', name: 'Lena Kovács', firstName: 'Lena', listing: 'Cozy room in Greenpoint', lastMessage: 'Sorry it fell through — maybe next summer!', time: 'Jun 30', unread: 0 },
+  { id: 'c2', agId: 'a2', name: 'Jordan Alvarez', firstName: 'Jordan', listing: 'Sunny 1BR in Williamsburg', lastMessage: 'Just sent the booking request — really excited about the roof deck!', time: '9:41 AM', unread: 2, hostId: 'host-1', hostName: 'Ana Torres' },
+  { id: 'c3', agId: 'a3', name: 'Priya Raman', firstName: 'Priya', listing: 'Loft 2BR on Kent Ave', lastMessage: 'Would you consider a slightly earlier move-in, like Aug 28?', time: 'Yesterday', unread: 1, hostId: 'host-2', hostName: 'Ben Ricci' },
+  { id: 'c1', agId: 'a1', name: 'Maya Chen', firstName: 'Maya', listing: 'Studio near Domino Park', lastMessage: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday', unread: 0, hostId: 'host-1', hostName: 'Ana Torres' },
+  { id: 'c6', agId: 'a6', name: 'Diego Fernández', firstName: 'Diego', listing: 'Sunny 1BR in Williamsburg', lastMessage: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue', unread: 0, hostId: 'host-1', hostName: 'Ana Torres' },
+  { id: 'c4', agId: 'a4', name: 'Sam Okafor', firstName: 'Sam', listing: 'Bright 2BR in Bushwick', lastMessage: 'The AC filter arrived, installed it this morning 👍', time: 'Mon', unread: 0, hostId: 'host-2', hostName: 'Ben Ricci' },
+  { id: 'c5', agId: 'a5', name: 'Lena Kovács', firstName: 'Lena', listing: 'Cozy room in Greenpoint', lastMessage: 'Sorry it fell through — maybe next summer!', time: 'Jun 30', unread: 0, hostId: 'host-1', hostName: 'Ana Torres' },
 ];
 
 const threads: Record<string, Message[]> = {
   c1: [
-    { id: 'm1', from: 'them', text: 'Hi! Is the studio still available for mid-July?', time: 'Jul 2' },
-    { id: 'm2', from: 'me', text: 'Hi Maya — yes it is! Happy to do a video tour this week.', time: 'Jul 2' },
-    { id: 'm3', from: 'them', text: 'Booked and paid ✅', time: 'Jul 8' },
-    { id: 'm4', from: 'them', text: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday' },
+    { id: 'm1', from: 'them', senderName: 'Maya Chen', text: 'Hi! Is the studio still available for mid-July?', time: 'Jul 2' },
+    { id: 'm2', from: 'me', senderName: 'Ana Torres', text: 'Hi Maya — yes it is! Happy to do a video tour this week.', time: 'Jul 2' },
+    { id: 'm3', from: 'them', senderName: 'Maya Chen', text: 'Booked and paid ✅', time: 'Jul 8' },
+    { id: 'm4', from: 'them', senderName: 'Maya Chen', text: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday' },
   ],
   c2: [
-    { id: 'm1', from: 'them', text: 'Hey! I love the Williamsburg 1BR. Is the roof deck shared?', time: '9:12 AM' },
-    { id: 'm2', from: 'me', text: 'Hi Jordan! Shared with just one other unit — it rarely feels busy.', time: '9:20 AM' },
-    { id: 'm3', from: 'them', text: 'Just sent the booking request — really excited about the roof deck!', time: '9:41 AM' },
+    { id: 'm1', from: 'them', senderName: 'Jordan Alvarez', text: 'Hey! I love the Williamsburg 1BR. Is the roof deck shared?', time: '9:12 AM' },
+    { id: 'm2', from: 'me', senderName: 'Ana Torres', text: 'Hi Jordan! Shared with just one other unit — it rarely feels busy.', time: '9:20 AM' },
+    { id: 'm3', from: 'them', senderName: 'Jordan Alvarez', text: 'Just sent the booking request — really excited about the roof deck!', time: '9:41 AM' },
   ],
   c3: [
-    { id: 'm1', from: 'them', text: 'Hi, the Kent Ave loft looks perfect for my sister and me.', time: 'Mon' },
-    { id: 'm2', from: 'me', text: 'It is a great space — 12ft ceilings, tons of light. When would you move in?', time: 'Mon' },
-    { id: 'm3', from: 'them', text: 'Would you consider a slightly earlier move-in, like Aug 28?', time: 'Yesterday' },
+    { id: 'm1', from: 'them', senderName: 'Priya Raman', text: 'Hi, the Kent Ave loft looks perfect for my sister and me.', time: 'Mon' },
+    { id: 'm2', from: 'me', senderName: 'Ben Ricci', text: 'It is a great space — 12ft ceilings, tons of light. When would you move in?', time: 'Mon' },
+    { id: 'm3', from: 'them', senderName: 'Priya Raman', text: 'Would you consider a slightly earlier move-in, like Aug 28?', time: 'Yesterday' },
   ],
   c4: [
-    { id: 'm1', from: 'them', text: 'The AC filter arrived, installed it this morning 👍', time: 'Mon' },
+    { id: 'm1', from: 'them', senderName: 'Sam Okafor', text: 'The AC filter arrived, installed it this morning 👍', time: 'Mon' },
   ],
   c5: [
-    { id: 'm1', from: 'them', text: 'Sorry it fell through — maybe next summer!', time: 'Jun 30' },
+    { id: 'm1', from: 'them', senderName: 'Lena Kovács', text: 'Sorry it fell through — maybe next summer!', time: 'Jun 30' },
   ],
   c6: [
-    { id: 'm1', from: 'them', text: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue' },
+    { id: 'm1', from: 'them', senderName: 'Diego Fernández', text: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue' },
   ],
 };
 
@@ -111,9 +111,9 @@ export const mockApi: GuestAdminApi = {
   },
   async sendMessage(chatId, text) {
     await delay(60);
-    const thread = (threads[chatId] ??= []);
-    thread.push({ id: `m${Date.now()}`, from: 'me', text, time: 'now' });
     const c = chats.find((x) => x.id === chatId);
+    const thread = (threads[chatId] ??= []);
+    thread.push({ id: `m${Date.now()}`, from: 'me', senderName: c?.hostName, text, time: 'now' });
     if (c) {
       c.lastMessage = text;
       c.time = 'now';

@@ -13,9 +13,7 @@ import {
   type Auth,
   type User,
 } from 'firebase/auth';
-
-const USE_MOCKS =
-  import.meta.env.VITE_USE_MOCKS === 'true' || !import.meta.env.VITE_FIREBASE_API_KEY;
+import { USE_MOCKS } from '../api/config';
 
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;

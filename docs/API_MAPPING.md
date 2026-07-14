@@ -37,22 +37,22 @@ local backend, `http://localhost:3025/docs`). Staging docs: <https://api-staging
 | Decline booking | `POST /admin-guest/agreements/:id/decline` | Shown as `cancelled` in UI. |
 | Inbox | `GET /admin-guest/chat-rooms` | Uses `unreadMessagesCount`, `lastChatMessage`, `lastAgreement`. |
 | Chat messages | `GET /admin-guest/chat-messages?chatRoomId=&sort=createdAt&isSortAscending=true` | |
-| Send message | `POST /admin-guest/chat-messages` `{chatRoomId, userId:<host>, text, type:'text'}` | `userId` (sender) is required by `AdminSaveChatMessageDto` → `VITE_TENANT_HOST_USER_ID`. |
+| Send message | `POST /admin-guest/chat-messages` `{chatRoomId, userId:<host>, text, type:'text'}` | `userId` (sender) is required by `AdminSaveChatMessageDto` and must be a company member → the UI sends the room's company-side participant (`ChatSummary.hostId`). |
 | Dashboard stats | `GET /admin-guest/stats` | `AdminGuestStatsDto`: `activeListings`, `pendingRequests`, `monthRevenueCents`, `unread`. |
 | Listing media (extra) | `GET /admin-guest/media?entityId=&entityType=post` | Not used yet — posts already embed `media`. |
-| Mark chat read | — none | No read-receipt endpoint in `/admin-guest`; no-op. |
+| Mark chat read | `POST /admin-guest/chat-rooms/:id/read` | Advances the read marker for the company's members in the room. |
+
+## Chat sender & perspective (resolved)
+
+Rooms and messages embed hydrated users (`chatUsers[].user`, `message.user`) including
+`companyId`. Since `/admin-guest` rooms only contain our company's members plus renters,
+"company side" = participant/sender with a `companyId` (`adapters.ts`). Replies are sent as
+the room's company-side participant (`ChatSummary.hostId`) — which may be a different admin
+than the one logged in — and each message carries `senderName` so multi-admin threads stay
+attributable. `VITE_TENANT_HOST_USER_ID` is only a legacy fallback.
 
 ## Remaining gaps → asks for the snag-api team
 
-1. **Read receipts**: `POST /admin-guest/chat-rooms/:id/read` (mark room read for the caller /
-   host team) so `unreadMessagesCount` and the stats `unread` actually reset after a chat is
-   opened. `markChatRead()` is a no-op until then.
-2. **Sender inference**: `POST /admin-guest/chat-messages` requires an explicit `userId`; the
-   API should infer the sending host user from the token (or from the company's host user) so
-   `VITE_TENANT_HOST_USER_ID` can be dropped.
-3. **Chat perspective**: chat-room members are keyed by user id, so the UI still needs
-   `VITE_TENANT_HOST_USER_ID` to tell "me" from "them". A `isCompanyMember`/`role` flag on
-   `chatUsers` (or gap 2's inference) would remove this.
-4. **Per-member read/unread counts** for host team members (multi-seat inboxes).
+1. **Per-member read/unread counts** for host team members (multi-seat inboxes).
 
 When these land: update `src/api/real.ts` only; view-models and pages stay untouched.

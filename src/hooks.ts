@@ -62,8 +62,12 @@ export const useChats = () =>
 export const useListing = (id: string) =>
   useQuery({ queryKey: keys.listing(id), queryFn: () => guestAdminApi.getListing(id) });
 
-export const useBooking = (id: string) =>
-  useQuery({ queryKey: keys.booking(id), queryFn: () => guestAdminApi.getBooking(id) });
+export const useBooking = (id: string, options: { enabled?: boolean } = {}) =>
+  useQuery({
+    queryKey: keys.booking(id),
+    queryFn: () => guestAdminApi.getBooking(id),
+    enabled: (options.enabled ?? true) && !!id,
+  });
 
 export const useMessages = (chatId: string) =>
   useQuery({
@@ -100,10 +104,11 @@ export function useBookingDecision() {
   return { accept, decline };
 }
 
-export function useSendMessage(chatId: string) {
+/** `asUserId` — the room's company-side participant the reply is sent as (chat.hostId). */
+export function useSendMessage(chatId: string, asUserId?: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (text: string) => guestAdminApi.sendMessage(chatId, text),
+    mutationFn: (text: string) => guestAdminApi.sendMessage(chatId, text, asUserId),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.messages(chatId) });
       void qc.invalidateQueries({ queryKey: keys.chats });

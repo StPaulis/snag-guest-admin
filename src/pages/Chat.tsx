@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ArrowLeft, Send } from 'lucide-react';
 import { guestAdminApi } from '../api';
-import { keys, useBookingDecision, useBookings, useChats, useMessages, useSendMessage } from '../hooks';
+import {
+  keys,
+  useBooking,
+  useBookingDecision,
+  useBookings,
+  useChats,
+  useMessages,
+  useSendMessage,
+} from '../hooks';
 import { Avatar, Button, Spinner } from '../components/ui';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -13,13 +21,18 @@ export default function Chat() {
   const chats = useChats();
   const bookings = useBookings();
   const messages = useMessages(chatId);
-  const send = useSendMessage(chatId);
+  const chat = chats.items.find((c) => c.id === chatId);
+  // Replies are always sent as the room's company-side participant (chat.hostId),
+  // which may be a different admin than the one currently logged in.
+  const send = useSendMessage(chatId, chat?.hostId);
   const { accept, decline } = useBookingDecision();
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const chat = chats.items.find((c) => c.id === chatId);
-  const booking = bookings.items.find((b) => b.id === chat?.agId || b.chatId === chatId);
+  // Prefer the booking from the loaded pages; fall back to fetching it directly when
+  // this chat's agreement sits beyond the pages the inbox/agreements lists have loaded.
+  const listBooking = bookings.items.find((b) => b.id === chat?.agId || b.chatId === chatId);
+  const fetchedBooking = useBooking(chat?.agId ?? '', { enabled: !listBooking && !!chat?.agId });
+  const booking = listBooking ?? fetchedBooking.data;
 
   // Opening a chat zeroes its unread count
   useEffect(() => {
@@ -104,12 +117,19 @@ export default function Chat() {
             >
               {m.text}
             </div>
-            <span className="mt-1 text-[11px] text-neutral-300">{m.time}</span>
+            <span className="mt-1 text-[11px] text-neutral-300">
+              {m.senderName ? `${m.senderName} · ${m.time}` : m.time}
+            </span>
           </div>
         ))}
       </div>
 
       {/* Composer */}
+      {chat.hostName && (
+        <div className="pt-2 text-right text-[11px] text-neutral-300">
+          replying as {chat.hostName}
+        </div>
+      )}
       <div className="flex items-center gap-2.5 pt-3">
         <input
           value={draft}

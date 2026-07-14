@@ -146,8 +146,21 @@ export function toBooking(ag: ApiAgreement, listingTitle?: string): Booking {
   };
 }
 
+/**
+ * Company-side detection: /admin-guest rooms only ever contain our own company's
+ * members plus renters, so a participant/sender with a companyId is one of our
+ * admins. `hostUserId` (tenant env) is kept as a fallback signal only.
+ */
+const isCompanySide = (u?: ApiUser, id?: string, hostUserId?: string): boolean =>
+  Boolean(u?.companyId) || (!!hostUserId && (u?.id ?? id) === hostUserId);
+
 export function toChatSummary(room: ApiChatRoom, hostUserId?: string): ChatSummary {
-  const other = (room.chatUsers ?? []).map((cu) => cu.user).find((u) => u && u.id !== hostUserId);
+  const chatUsers = room.chatUsers ?? [];
+  const host = chatUsers.find((cu) => isCompanySide(cu.user, cu.userId, hostUserId));
+  const other = chatUsers
+    .filter((cu) => cu !== host)
+    .map((cu) => cu.user)
+    .find((u) => u && !isCompanySide(u, undefined, hostUserId));
   const renter = toRenter(other ?? undefined, room.createdBy ?? '');
   const lastAg = room.lastAgreement ?? room.agreements?.[0];
   return {
@@ -160,6 +173,8 @@ export function toChatSummary(room: ApiChatRoom, hostUserId?: string): ChatSumma
     lastMessage: room.lastChatMessage?.text ?? '',
     time: formatTime(room.lastChatMessage?.createdAt ?? room.createdAt),
     unread: room.unreadMessagesCount ?? 0,
+    hostId: host?.userId,
+    hostName: host?.user ? toRenter(host.user).name : undefined,
   };
 }
 
@@ -175,7 +190,8 @@ export function toDashboardStats(s: ApiGuestStats): DashboardStats {
 export function toMessage(m: ApiChatMessage, hostUserId?: string): Message {
   return {
     id: m.id,
-    from: m.userId === hostUserId ? 'me' : 'them',
+    from: isCompanySide(m.user, m.userId, hostUserId) ? 'me' : 'them',
+    senderName: m.user ? toRenter(m.user).name : undefined,
     text: m.text,
     time: formatTime(m.createdAt),
   };
