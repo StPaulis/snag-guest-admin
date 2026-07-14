@@ -31,6 +31,18 @@ export enum UnitType {
   THREE_PLUS_BEDROOM = 'three-plus-bedroom',
 }
 
+export enum CancellationPolicy {
+  BEFORE_CHECK_IN = 'before-check-in',
+  ONE_WEEK_BEFORE_CHECK_IN = 'one-week-before-check-in',
+  ONE_MONTH_BEFORE_CHECK_IN = 'one-month-before-check-in',
+  NO_CANCELLATION = 'no-cancellation',
+}
+
+export enum PaymentPeriod {
+  ALL_AT_ONCE = 'all-at-once',
+  MONTHLY = 'monthly',
+}
+
 export enum MessageType {
   HTML = 'html',
   TEXT = 'text',
@@ -68,6 +80,8 @@ export interface ApiMedia {
   entityId?: string;
   previewUrl?: string;
   order?: number;
+  /** May carry a display filename / mime hint for non-image attachments. */
+  extras?: Record<string, unknown> & { fileName?: string; mimeType?: string };
   createdAt: string;
 }
 
@@ -109,6 +123,9 @@ export interface ApiPost {
   unitType?: UnitType;
   unitDetails?: { bedrooms?: number; bathrooms?: number } & Record<string, unknown>;
   price?: number; // cents / month
+  additionalCosts?: number; // cents
+  securityDeposit?: number; // cents
+  cancellationPolicy?: CancellationPolicy;
   activeFrom?: string;
   activeUntil?: string;
   amenities?: string[];
@@ -133,12 +150,17 @@ export interface ApiAgreement {
   chatRoomId?: string;
   moveInAt?: string;
   moveOutAt?: string;
+  aptNumber?: string;
   unitType: UnitType;
   monthlyPrice: number; // cents
   totalPrice: number; // cents
   additionalCosts: number; // cents
   fee: number; // cents
-  refundableFee?: number;
+  /** Refundable security deposit held for the stay, in cents. */
+  refundableFee?: number | null;
+  referralDiscount?: number; // cents
+  cancellationPolicy?: CancellationPolicy | null;
+  paymentPeriod?: PaymentPeriod | null;
   extras?: Record<string, unknown>;
   post?: ApiPost;
   forUser?: ApiUser;
@@ -175,6 +197,7 @@ export interface ApiChatMessage {
   type: MessageType;
   status?: EntityStatus;
   user?: ApiUser;
+  media?: ApiMedia[];
   isRead?: boolean;
   createdAt: string;
 }

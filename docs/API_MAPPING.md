@@ -22,6 +22,9 @@ local backend, `http://localhost:3025/docs`). Staging docs: <https://api-staging
 - Money fields are integer **cents** (UI converts in `src/api/adapters.ts`).
 - `AgreementStatus`: `requested | created | declined | signed | paid | cancelled`.
   UI mapping: paid,signed→`paid` · requested,created→`requested` · declined,cancelled→`cancelled`.
+  Accept/decline only act on raw `requested` — `Booking.canRespond` carries that distinction to
+  the UI so `created` drafts (also shown as `requested`) never offer accept/decline.
+- Free-text `search` param (posts, agreements, chat-rooms): server-side, combined with paging.
 - **Tenancy is server-side**: every `/admin-guest` endpoint is scoped to the caller's company
   (from the guest-admin claim). No client-side `userId` filtering.
 
@@ -29,14 +32,14 @@ local backend, `http://localhost:3025/docs`). Staging docs: <https://api-staging
 
 | UI need | Endpoint | Notes |
 | --- | --- | --- |
-| Listings grid | `GET /admin-guest/posts?type=offering` | Listing = offering `Post`. Title derived from `extras.title` or first sentence of `description`. |
+| Listings grid | `GET /admin-guest/posts?type=offering&search=` | Listing = offering `Post`. `search`: description, address, host name or price. Title derived from `extras.title` or first sentence of `description`. |
 | Listing detail | `GET /admin-guest/posts/:id` | Read-only by product decision. |
-| Agreements table | `GET /admin-guest/agreements` | Filter client-side by mapped status. |
-| Agreement detail | `GET /admin-guest/agreements/:id` | Hydrated with post/forUser. |
-| Accept booking | `POST /admin-guest/agreements/:id/accept` | Runs the real accept flow server-side; returns the updated `Agreement`. |
-| Decline booking | `POST /admin-guest/agreements/:id/decline` | Shown as `cancelled` in UI. |
-| Inbox | `GET /admin-guest/chat-rooms` | Uses `unreadMessagesCount`, `lastChatMessage`, `lastAgreement`. |
-| Chat messages | `GET /admin-guest/chat-messages?chatRoomId=&sort=createdAt&isSortAscending=true` | |
+| Agreements table | `GET /admin-guest/agreements?search=` | `search`: participant name, legal name, listing address or price. Status filter stays client-side by mapped status. |
+| Agreement detail | `GET /admin-guest/agreements/:id` | Hydrated with post/forUser. Detail surfaces unit/apt, `additionalCosts`, refundable `securityDeposit` (agreement `refundableFee` → post fallback), `referralDiscount`, `cancellationPolicy` and `paymentPeriod` alongside the price breakdown. |
+| Accept booking | `POST /admin-guest/agreements/:id/accept` | Only raw `requested` agreements; UI gates on `Booking.canRespond`. Runs the real accept flow server-side; returns the updated `Agreement`. |
+| Decline booking | `POST /admin-guest/agreements/:id/decline` | Only raw `requested` agreements (`Booking.canRespond`). Shown as `cancelled` in UI. |
+| Inbox / chat banner | `GET /admin-guest/chat-rooms?includeAgreements=true` | Uses `unreadMessagesCount`, `lastChatMessage`; `includeAgreements` embeds the room's agreements so the chat screen can accept/decline a pending request (adapter prefers a `requested` agreement). A room's `name` is often blank — the chat subtitle falls back (linked listing → room name → unit/apt → "direct message with {firstName}") in `adapters.ts`. |
+| Chat messages | `GET /admin-guest/chat-messages?chatRoomId=&sort=createdAt&isSortAscending=false&page=&limit=30` | Paginated newest→oldest ("load older messages" in the thread); reversed client-side to chronological order. Each message hydrates its `media[]` relation — the chat renders attachments as image thumbnails, inline video, or document chips (kind inferred from mime hint → URL extension in `adapters.ts`). |
 | Send message | `POST /admin-guest/chat-messages` `{chatRoomId, userId:<host>, text, type:'text'}` | `userId` (sender) is required by `AdminSaveChatMessageDto` and must be a company member → the UI sends the room's company-side participant (`ChatSummary.hostId`). |
 | Dashboard stats | `GET /admin-guest/stats` | `AdminGuestStatsDto`: `activeListings`, `pendingRequests`, `monthRevenueCents`, `unread`. |
 | Listing media (extra) | `GET /admin-guest/media?entityId=&entityType=post` | Not used yet — posts already embed `media`. |

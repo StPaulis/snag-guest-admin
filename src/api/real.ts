@@ -35,6 +35,7 @@ import type {
   ChatSummary,
   DashboardStats,
   GuestAdminApi,
+  ListParams,
   Listing,
   Message,
   Page,
@@ -42,9 +43,10 @@ import type {
 } from './models';
 
 export const realApi: GuestAdminApi = {
-  async getListings({ page, limit }: PageParams): Promise<Page<Listing>> {
+  async getListings({ page, limit, search }: ListParams): Promise<Page<Listing>> {
+    // `search`: free-text over description, address, host name or price (server-side).
     const res = await api<PagedDto<ApiPost>>('/admin-guest/posts', {
-      query: { page, limit, type: PostType.OFFERING },
+      query: { page, limit, type: PostType.OFFERING, search },
     });
     return { items: res.data.map(toListing), total: res.total };
   },
@@ -54,9 +56,10 @@ export const realApi: GuestAdminApi = {
     return post ? toListing(post) : undefined;
   },
 
-  async getBookings({ page, limit }: PageParams): Promise<Page<Booking>> {
+  async getBookings({ page, limit, search }: ListParams): Promise<Page<Booking>> {
+    // `search`: free-text over participant name, legal name, listing address or price.
     const res = await api<PagedDto<ApiAgreement>>('/admin-guest/agreements', {
-      query: { page, limit },
+      query: { page, limit, search },
     });
     return { items: res.data.map((ag) => toBooking(ag)), total: res.total };
   },
@@ -75,8 +78,10 @@ export const realApi: GuestAdminApi = {
   },
 
   async getChats({ page, limit }: PageParams): Promise<Page<ChatSummary>> {
+    // includeAgreements hydrates each room's agreements so the chat screen can
+    // surface accept/decline for a pending (requested) booking.
     const res = await api<PagedDto<ApiChatRoom>>('/admin-guest/chat-rooms', {
-      query: { page, limit },
+      query: { page, limit, includeAgreements: true },
     });
     return {
       items: res.data.map((room) => toChatSummary(room, tenant.hostUserId)),
@@ -84,11 +89,18 @@ export const realApi: GuestAdminApi = {
     };
   },
 
-  async getMessages(chatId: string): Promise<Message[]> {
+  async getMessages(chatId: string, { page, limit }: PageParams): Promise<Page<Message>> {
+    // Newest-first paging; the useMessages hook reverses to chronological for display.
     const res = await api<PagedDto<ApiChatMessage>>('/admin-guest/chat-messages', {
-      query: { page: 1, limit: 300, chatRoomId: chatId, sort: 'createdAt', isSortAscending: true },
+      query: {
+        page,
+        limit,
+        chatRoomId: chatId,
+        sort: 'createdAt',
+        isSortAscending: false,
+      },
     });
-    return res.data.map((m) => toMessage(m, tenant.hostUserId));
+    return { items: res.data.map((m) => toMessage(m, tenant.hostUserId)), total: res.total };
   },
 
   async sendMessage(chatId: string, text: string, asUserId?: string): Promise<void> {

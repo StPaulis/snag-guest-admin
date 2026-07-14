@@ -5,7 +5,7 @@
  */
 
 export type ListingStatus = 'active' | 'booked' | 'paused';
-export type BookingStatus = 'paid' | 'requested' | 'cancelled';
+export type BookingStatus = 'paid' | 'created' | 'requested' | 'cancelled';
 
 export interface Listing {
   id: string;
@@ -42,6 +42,13 @@ export interface Booking {
   listingTitle: string;
   renter: Renter;
   status: BookingStatus;
+  /**
+   * True only when the underlying agreement is in the raw `requested` state —
+   * the only state snag-api's accept/decline endpoints act on. The separate
+   * `created` status (a draft the renter hasn't submitted yet) never shows
+   * accept/decline affordances.
+   */
+  canRespond: boolean;
   moveIn: string;
   moveOut: string;
   months: number;
@@ -50,6 +57,19 @@ export interface Booking {
   subtotal: number;
   fee: number;
   total: number;
+  /** human-readable unit, e.g. "1 bedroom", "private room" */
+  unitType?: string;
+  aptNumber?: string;
+  /** one-off costs on top of rent, in dollars (0 when none) */
+  additionalCosts: number;
+  /** refundable security deposit in dollars, if the stay holds one */
+  securityDeposit?: number;
+  /** referral credit applied, in dollars, if any */
+  referralDiscount?: number;
+  /** human-readable cancellation policy, e.g. "up to 1 month before check-in" */
+  cancellationPolicy?: string;
+  /** human-readable payment schedule, e.g. "paid in full" / "monthly" */
+  paymentSchedule?: string;
   chatId?: string;
 }
 
@@ -68,6 +88,20 @@ export interface ChatSummary {
   hostName?: string;
 }
 
+export type MediaKind = 'image' | 'video' | 'document';
+
+/** An attachment on a chat message — an image, a video, or a document/file. */
+export interface MessageMedia {
+  id: string;
+  kind: MediaKind;
+  /** original file URL (opens/downloads) */
+  url: string;
+  /** thumbnail/poster for images & video, when available */
+  previewUrl?: string;
+  /** display name for documents (and alt text) */
+  name?: string;
+}
+
 export interface Message {
   id: string;
   /** 'me' = sent by any of our company's admins, 'them' = the renter */
@@ -75,6 +109,8 @@ export interface Message {
   senderName?: string;
   text: string;
   time: string;
+  /** attachments (images/video/docs); empty or absent for plain-text messages */
+  media?: MessageMedia[];
 }
 
 export interface DashboardStats {
@@ -84,10 +120,18 @@ export interface DashboardStats {
   unreadMessages: number;
 }
 
-/** 1-based paging request. `limit` defaults to 30 (see hooks.ts DEFAULT_LIMIT). */
+/** Page size for every fetch — lists and chat threads. Never request more per call. */
+export const DEFAULT_LIMIT = 30;
+
+/** 1-based paging request. `limit` defaults to DEFAULT_LIMIT. */
 export interface PageParams {
   page: number;
   limit: number;
+}
+
+/** Paging plus server-side free-text search (snag-api `search` query param). */
+export interface ListParams extends PageParams {
+  search?: string;
 }
 
 /** A page of results plus the server-side total, for real pagination. */
@@ -98,14 +142,15 @@ export interface Page<T> {
 
 /** The single data-access interface every page uses. Real + mock both implement it. */
 export interface GuestAdminApi {
-  getListings(params: PageParams): Promise<Page<Listing>>;
+  getListings(params: ListParams): Promise<Page<Listing>>;
   getListing(id: string): Promise<Listing | undefined>;
-  getBookings(params: PageParams): Promise<Page<Booking>>;
+  getBookings(params: ListParams): Promise<Page<Booking>>;
   getBooking(id: string): Promise<Booking | undefined>;
   acceptBooking(id: string): Promise<void>;
   declineBooking(id: string): Promise<void>;
   getChats(params: PageParams): Promise<Page<ChatSummary>>;
-  getMessages(chatId: string): Promise<Message[]>;
+  /** Pages run newest→oldest (page 1 = latest messages); items within a page are newest-first too. */
+  getMessages(chatId: string, params: PageParams): Promise<Page<Message>>;
   sendMessage(chatId: string, text: string, asUserId?: string): Promise<void>;
   markChatRead(chatId: string): Promise<void>;
   getStats(): Promise<DashboardStats>;

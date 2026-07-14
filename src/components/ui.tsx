@@ -9,6 +9,7 @@ type PillStatus = BookingStatus | ListingStatus;
 const PILL_STYLES: Record<PillStatus, string> = {
   paid: 'bg-success-200 text-success-700',
   active: 'bg-success-200 text-success-700',
+  created: 'bg-neutral-200 text-neutral-400',
   requested: 'bg-warn-200 text-brand-800',
   booked: 'bg-info-200 text-info-500',
   cancelled: 'bg-danger-200 text-danger-500',

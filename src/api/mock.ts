@@ -22,12 +22,14 @@ const listings: Listing[] = [
 ];
 
 const bookings: Booking[] = [
-  { id: 'a1', ref: '#SN-4821', listingId: 'l2', listingTitle: 'Studio near Domino Park', renter: { id: 'u1', name: 'Maya Chen', firstName: 'Maya', idVerified: true, instagram: 'maya.chen', linkedin: 'mayachen' }, status: 'paid', moveIn: 'Jul 15, 2026', moveOut: 'Dec 15, 2026', months: 5, monthly: 2400, subtotal: 12000, fee: 600, total: 12600, chatId: 'c1' },
-  { id: 'a2', ref: '#SN-4835', listingId: 'l1', listingTitle: 'Sunny 1BR in Williamsburg', renter: { id: 'u2', name: 'Jordan Alvarez', firstName: 'Jordan', idVerified: true, instagram: 'jordy.alv', linkedin: 'jordanalvarez' }, status: 'requested', moveIn: 'Aug 1, 2026', moveOut: 'Oct 31, 2026', months: 3, monthly: 2850, subtotal: 8550, fee: 428, total: 8978, chatId: 'c2' },
-  { id: 'a3', ref: '#SN-4840', listingId: 'l3', listingTitle: 'Loft 2BR on Kent Ave', renter: { id: 'u3', name: 'Priya Raman', firstName: 'Priya', idVerified: false, instagram: 'priya.r' }, status: 'requested', moveIn: 'Sep 1, 2026', moveOut: 'Dec 1, 2026', months: 3, monthly: 4200, subtotal: 12600, fee: 630, total: 13230, chatId: 'c3' },
-  { id: 'a4', ref: '#SN-4812', listingId: 'l6', listingTitle: 'Bright 2BR in Bushwick', renter: { id: 'u4', name: 'Sam Okafor', firstName: 'Sam', idVerified: true, linkedin: 'samokafor' }, status: 'paid', moveIn: 'Jun 1, 2026', moveOut: 'Nov 30, 2026', months: 6, monthly: 3100, subtotal: 18600, fee: 930, total: 19530, chatId: 'c4' },
-  { id: 'a5', ref: '#SN-4788', listingId: 'l4', listingTitle: 'Cozy room in Greenpoint', renter: { id: 'u5', name: 'Lena Kovács', firstName: 'Lena', idVerified: true, instagram: 'lenak' }, status: 'cancelled', moveIn: 'Jun 15, 2026', moveOut: 'Aug 15, 2026', months: 2, monthly: 1650, subtotal: 3300, fee: 165, total: 3465, chatId: 'c5' },
-  { id: 'a6', ref: '#SN-4851', listingId: 'l1', listingTitle: 'Sunny 1BR in Williamsburg', renter: { id: 'u6', name: 'Diego Fernández', firstName: 'Diego', idVerified: false, instagram: 'diegofdz' }, status: 'requested', moveIn: 'Sep 15, 2026', moveOut: 'Mar 15, 2027', months: 6, monthly: 2850, subtotal: 17100, fee: 855, total: 17955, chatId: 'c6' },
+  { id: 'a1', ref: '#SN-4821', listingId: 'l2', listingTitle: 'Studio near Domino Park', renter: { id: 'u1', name: 'Maya Chen', firstName: 'Maya', idVerified: true, instagram: 'maya.chen', linkedin: 'mayachen' }, status: 'paid', canRespond: false, moveIn: 'Jul 15, 2026', moveOut: 'Dec 15, 2026', months: 5, monthly: 2400, subtotal: 12000, fee: 600, total: 12600, unitType: 'studio', aptNumber: '4B', additionalCosts: 150, securityDeposit: 2400, cancellationPolicy: 'up to 1 month before check-in', paymentSchedule: 'paid in full', chatId: 'c1' },
+  { id: 'a2', ref: '#SN-4835', listingId: 'l1', listingTitle: 'Sunny 1BR in Williamsburg', renter: { id: 'u2', name: 'Jordan Alvarez', firstName: 'Jordan', idVerified: true, instagram: 'jordy.alv', linkedin: 'jordanalvarez' }, status: 'requested', canRespond: true, moveIn: 'Aug 1, 2026', moveOut: 'Oct 31, 2026', months: 3, monthly: 2850, subtotal: 8550, fee: 428, total: 8978, unitType: '1 bedroom', additionalCosts: 0, securityDeposit: 2850, cancellationPolicy: 'up to 1 week before check-in', paymentSchedule: 'paid monthly', chatId: 'c2' },
+  { id: 'a3', ref: '#SN-4840', listingId: 'l3', listingTitle: 'Loft 2BR on Kent Ave', renter: { id: 'u3', name: 'Priya Raman', firstName: 'Priya', idVerified: false, instagram: 'priya.r' }, status: 'requested', canRespond: true, moveIn: 'Sep 1, 2026', moveOut: 'Dec 1, 2026', months: 3, monthly: 4200, subtotal: 12600, fee: 630, total: 13230, unitType: '2 bedroom', additionalCosts: 200, referralDiscount: 100, cancellationPolicy: 'free until check-in', paymentSchedule: 'paid monthly', chatId: 'c3' },
+  { id: 'a4', ref: '#SN-4812', listingId: 'l6', listingTitle: 'Bright 2BR in Bushwick', renter: { id: 'u4', name: 'Sam Okafor', firstName: 'Sam', idVerified: true, linkedin: 'samokafor' }, status: 'paid', canRespond: false, moveIn: 'Jun 1, 2026', moveOut: 'Nov 30, 2026', months: 6, monthly: 3100, subtotal: 18600, fee: 930, total: 19530, unitType: '2 bedroom', additionalCosts: 0, securityDeposit: 3100, cancellationPolicy: 'non-refundable', paymentSchedule: 'paid in full', chatId: 'c4' },
+  { id: 'a5', ref: '#SN-4788', listingId: 'l4', listingTitle: 'Cozy room in Greenpoint', renter: { id: 'u5', name: 'Lena Kovács', firstName: 'Lena', idVerified: true, instagram: 'lenak' }, status: 'cancelled', canRespond: false, moveIn: 'Jun 15, 2026', moveOut: 'Aug 15, 2026', months: 2, monthly: 1650, subtotal: 3300, fee: 165, total: 3465, unitType: 'private room', additionalCosts: 0, cancellationPolicy: 'up to 1 month before check-in', paymentSchedule: 'paid monthly', chatId: 'c5' },
+  // a6 mirrors a raw `created` agreement: a draft not yet submitted by the
+  // renter, so accept/decline must stay hidden.
+  { id: 'a6', ref: '#SN-4851', listingId: 'l1', listingTitle: 'Sunny 1BR in Williamsburg', renter: { id: 'u6', name: 'Diego Fernández', firstName: 'Diego', idVerified: false, instagram: 'diegofdz' }, status: 'created', canRespond: false, moveIn: 'Sep 15, 2026', moveOut: 'Mar 15, 2027', months: 6, monthly: 2850, subtotal: 17100, fee: 855, total: 17955, unitType: '1 bedroom', additionalCosts: 0, chatId: 'c6' },
 ];
 
 const chats: ChatSummary[] = [
@@ -37,14 +39,22 @@ const chats: ChatSummary[] = [
   { id: 'c6', agId: 'a6', name: 'Diego Fernández', firstName: 'Diego', listing: 'Sunny 1BR in Williamsburg', lastMessage: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue', unread: 0, hostId: 'host-1', hostName: 'Ana Torres' },
   { id: 'c4', agId: 'a4', name: 'Sam Okafor', firstName: 'Sam', listing: 'Bright 2BR in Bushwick', lastMessage: 'The AC filter arrived, installed it this morning 👍', time: 'Mon', unread: 0, hostId: 'host-2', hostName: 'Ben Ricci' },
   { id: 'c5', agId: 'a5', name: 'Lena Kovács', firstName: 'Lena', listing: 'Cozy room in Greenpoint', lastMessage: 'Sorry it fell through — maybe next summer!', time: 'Jun 30', unread: 0, hostId: 'host-1', hostName: 'Ana Torres' },
+  // c7 has no linked listing/room name — the adapter's fallback keeps it legible.
+  { id: 'c7', name: 'Alex Rivera', firstName: 'Alex', listing: 'direct message with Alex', lastMessage: 'Here are the photos of the water damage 👇', time: '2:15 PM', unread: 1, hostId: 'host-2', hostName: 'Ben Ricci' },
 ];
 
 const threads: Record<string, Message[]> = {
   c1: [
     { id: 'm1', from: 'them', senderName: 'Maya Chen', text: 'Hi! Is the studio still available for mid-July?', time: 'Jul 2' },
-    { id: 'm2', from: 'me', senderName: 'Ana Torres', text: 'Hi Maya — yes it is! Happy to do a video tour this week.', time: 'Jul 2' },
-    { id: 'm3', from: 'them', senderName: 'Maya Chen', text: 'Booked and paid ✅', time: 'Jul 8' },
-    { id: 'm4', from: 'them', senderName: 'Maya Chen', text: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday' },
+    { id: 'm2', from: 'me', senderName: 'Ana Torres', text: 'Hi Maya — yes it is! Here are a few shots of the space.', time: 'Jul 2', media: [
+      { id: 'md1', kind: 'image', url: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200', previewUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400' },
+      { id: 'md2', kind: 'image', url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200', previewUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400' },
+    ] },
+    { id: 'm3', from: 'me', senderName: 'Ana Torres', text: 'And the signed lease is attached.', time: 'Jul 2', media: [
+      { id: 'md3', kind: 'document', url: 'https://example.com/lease-studio-domino.pdf', name: 'lease-studio-domino.pdf' },
+    ] },
+    { id: 'm4', from: 'them', senderName: 'Maya Chen', text: 'Booked and paid ✅', time: 'Jul 8' },
+    { id: 'm5', from: 'them', senderName: 'Maya Chen', text: 'Perfect, see you on the 15th. Thanks again!', time: 'Yesterday' },
   ],
   c2: [
     { id: 'm1', from: 'them', senderName: 'Jordan Alvarez', text: 'Hey! I love the Williamsburg 1BR. Is the roof deck shared?', time: '9:12 AM' },
@@ -65,6 +75,15 @@ const threads: Record<string, Message[]> = {
   c6: [
     { id: 'm1', from: 'them', senderName: 'Diego Fernández', text: 'My company confirmed the NYC rotation, so 6 months works great.', time: 'Tue' },
   ],
+  c7: [
+    { id: 'm1', from: 'them', senderName: 'Alex Rivera', text: 'Hi — quick heads up, there is a leak under the kitchen sink.', time: '1:58 PM' },
+    { id: 'm2', from: 'them', senderName: 'Alex Rivera', text: 'Here are the photos of the water damage 👇', time: '2:15 PM', media: [
+      { id: 'md4', kind: 'image', url: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1200', previewUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400' },
+    ] },
+    { id: 'm3', from: 'them', senderName: 'Alex Rivera', text: 'And a short clip of the dripping.', time: '2:16 PM', media: [
+      { id: 'md5', kind: 'video', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+    ] },
+  ],
 };
 
 const delay = (ms = 180) => new Promise((r) => setTimeout(r, ms));
@@ -74,10 +93,20 @@ function paginate<T>(all: T[], { page, limit }: PageParams): Page<T> {
   return { items: all.slice(start, start + limit), total: all.length };
 }
 
+/** Mirrors the server's free-text `search` param: case-insensitive substring match. */
+function matches(search: string | undefined, ...fields: (string | number)[]): boolean {
+  const q = search?.trim().toLowerCase();
+  if (!q) return true;
+  return fields.some((f) => String(f).toLowerCase().includes(q));
+}
+
 export const mockApi: GuestAdminApi = {
   async getListings(params) {
     await delay();
-    return paginate(listings, params);
+    return paginate(
+      listings.filter((l) => matches(params.search, l.title, l.area, l.desc, l.price)),
+      params,
+    );
   },
   async getListing(id) {
     await delay();
@@ -85,7 +114,12 @@ export const mockApi: GuestAdminApi = {
   },
   async getBookings(params) {
     await delay();
-    return paginate(bookings, params);
+    return paginate(
+      bookings.filter((b) =>
+        matches(params.search, b.renter.name, b.listingTitle, b.ref, b.monthly),
+      ),
+      params,
+    );
   },
   async getBooking(id) {
     await delay();
@@ -94,20 +128,28 @@ export const mockApi: GuestAdminApi = {
   async acceptBooking(id) {
     await delay();
     const b = bookings.find((x) => x.id === id);
-    if (b) b.status = 'paid';
+    if (b) {
+      b.status = 'paid';
+      b.canRespond = false;
+    }
   },
   async declineBooking(id) {
     await delay();
     const b = bookings.find((x) => x.id === id);
-    if (b) b.status = 'cancelled';
+    if (b) {
+      b.status = 'cancelled';
+      b.canRespond = false;
+    }
   },
   async getChats(params) {
     await delay();
     return paginate(chats, params);
   },
-  async getMessages(chatId) {
+  async getMessages(chatId, params) {
     await delay();
-    return [...(threads[chatId] ?? [])];
+    // Same convention as real.ts: newest-first pages, hook reverses for display.
+    const newestFirst = [...(threads[chatId] ?? [])].reverse();
+    return paginate(newestFirst, params);
   },
   async sendMessage(chatId, text) {
     await delay(60);

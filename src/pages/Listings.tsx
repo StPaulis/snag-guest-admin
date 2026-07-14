@@ -1,20 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Search, Image } from 'lucide-react';
-import { useListings } from '../hooks';
+import { useDebouncedValue, useListings } from '../hooks';
 import { Button, PhotoBlock, Spinner, StatusPill } from '../components/ui';
 
 export default function Listings() {
   const navigate = useNavigate();
-  const { items, total, isLoading, hasMore, fetchMore, isFetchingMore } = useListings();
   const [query, setQuery] = useState('');
+  const search = useDebouncedValue(query.trim());
+  // Server-side search (posts `search` param: description, address, host name, price).
+  const { items, total, isLoading, hasMore, fetchMore, isFetchingMore } = useListings(search);
 
   if (isLoading) return <Spinner />;
-
-  const q = query.trim().toLowerCase();
-  const filtered = items.filter(
-    (l) => !q || l.title.toLowerCase().includes(q) || l.area.toLowerCase().includes(q),
-  );
 
   return (
     <div className="mx-auto max-w-[1080px]">
@@ -22,7 +19,7 @@ export default function Listings() {
         <div>
           <h1 className="m-0 text-[28px] leading-[34px] font-bold text-ink-display">listings</h1>
           <p className="mt-1 mb-0 text-[15px] text-neutral-400">
-            {total} properties on snag
+            {search ? `${total} matching properties` : `${total} properties on snag`}
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2.5">
@@ -30,14 +27,14 @@ export default function Listings() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="search by title or area"
+            placeholder="search listings"
             className="w-52 border-0 bg-transparent text-[14px] text-neutral-500 outline-none placeholder:text-neutral-300"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[22px]">
-        {filtered.map((l) => (
+        {items.map((l) => (
           <button
             key={l.id}
             onClick={() => navigate(`/listings/${l.id}`)}
@@ -64,14 +61,14 @@ export default function Listings() {
             </div>
           </button>
         ))}
-        {filtered.length === 0 && (
+        {items.length === 0 && (
           <p className="col-span-full py-10 text-center text-[15px] text-neutral-400">
             no listings match “{query}”
           </p>
         )}
       </div>
 
-      {hasMore && !q && (
+      {hasMore && (
         <div className="mt-7 flex justify-center">
           <Button
             variant="secondary"

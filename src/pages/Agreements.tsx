@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { BadgeCheck } from 'lucide-react';
-import { useBookings } from '../hooks';
+import { BadgeCheck, Search } from 'lucide-react';
+import { useBookings, useDebouncedValue } from '../hooks';
 import { Avatar, Button, Card, Spinner, StatusPill } from '../components/ui';
 
-const FILTERS = ['all', 'paid', 'requested', 'cancelled'] as const;
+const FILTERS = ['all', 'paid', 'created', 'requested', 'cancelled'] as const;
 type Filter = (typeof FILTERS)[number];
 
 export function IdVerifiedBadge() {
@@ -19,8 +19,12 @@ const GRID = 'grid grid-cols-[1.4fr_1.2fr_1.2fr_.8fr_.8fr] items-center gap-3 px
 
 export default function Agreements() {
   const navigate = useNavigate();
-  const { items, isLoading, hasMore, fetchMore, isFetchingMore } = useBookings();
   const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+  const search = useDebouncedValue(query.trim());
+  // Server-side search (agreements `search` param: participant name, legal name,
+  // listing address, price); status filtering stays client-side over loaded pages.
+  const { items, isLoading, hasMore, fetchMore, isFetchingMore } = useBookings(search);
 
   if (isLoading) return <Spinner />;
 
@@ -31,18 +35,29 @@ export default function Agreements() {
       <h1 className="m-0 text-[28px] leading-[34px] font-bold text-ink-display">agreements</h1>
       <p className="mt-1 mb-5 text-[15px] text-neutral-400">bookings across your listings</p>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
-              filter === f ? 'bg-brand-600 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-200'
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`cursor-pointer rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
+                filter === f ? 'bg-brand-600 text-white' : 'bg-white text-neutral-500 hover:bg-neutral-200'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2">
+          <Search size={16} strokeWidth={2} className="text-neutral-300" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="search agreements"
+            className="w-52 border-0 bg-transparent text-[14px] text-neutral-500 outline-none placeholder:text-neutral-300"
+          />
+        </div>
       </div>
 
       <Card className="overflow-x-auto">
@@ -77,7 +92,9 @@ export default function Agreements() {
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="py-10 text-center text-[15px] text-neutral-400">no {filter} bookings</p>
+          <p className="py-10 text-center text-[15px] text-neutral-400">
+            {search ? <>no agreements match “{query}”</> : <>no {filter} bookings</>}
+          </p>
         )}
       </Card>
 
