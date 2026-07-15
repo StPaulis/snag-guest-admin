@@ -1,0 +1,138 @@
+name: deploy
+
+# staging*  -> deploy only the staging distribution
+# v*        -> deploy all three production distributions (harrington, junehomes, aya)
+on:
+  push:
+    tags:
+      - 'staging*'
+      - 'v*'
+
+permissions:
+  id-token: write # required for AWS OIDC
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+      STAGING_FIREBASE_API_KEY: ${{ vars.STAGING_FIREBASE_API_KEY }}
+      STAGING_FIREBASE_AUTH_DOMAIN: ${{ vars.STAGING_FIREBASE_AUTH_DOMAIN }}
+      STAGING_TENANT_NAME: ${{ vars.STAGING_TENANT_NAME }}
+      STAGING_TENANT_INITIALS: ${{ vars.STAGING_TENANT_INITIALS }}
+      STAGING_TENANT_SUBDOMAIN: ${{ vars.STAGING_TENANT_SUBDOMAIN }}
+      STAGING_TENANT_HOST_USER_ID: ${{ vars.STAGING_TENANT_HOST_USER_ID }}
+      STAGING_S3_BUCKET: ${{ vars.STAGING_S3_BUCKET }}
+      STAGING_CF_DISTRIBUTION_ID: ${{ vars.STAGING_CF_DISTRIBUTION_ID }}
+
+      HARRINGTON_API_URL: ${{ vars.HARRINGTON_API_URL }}
+      HARRINGTON_FIREBASE_API_KEY: ${{ vars.HARRINGTON_FIREBASE_API_KEY }}
+      HARRINGTON_FIREBASE_AUTH_DOMAIN: ${{ vars.HARRINGTON_FIREBASE_AUTH_DOMAIN }}
+      HARRINGTON_TENANT_NAME: ${{ vars.HARRINGTON_TENANT_NAME }}
+      HARRINGTON_TENANT_INITIALS: ${{ vars.HARRINGTON_TENANT_INITIALS }}
+      HARRINGTON_TENANT_SUBDOMAIN: ${{ vars.HARRINGTON_TENANT_SUBDOMAIN }}
+      HARRINGTON_TENANT_HOST_USER_ID: ${{ vars.HARRINGTON_TENANT_HOST_USER_ID }}
+      HARRINGTON_S3_BUCKET: ${{ vars.HARRINGTON_S3_BUCKET }}
+      HARRINGTON_CF_DISTRIBUTION_ID: ${{ vars.HARRINGTON_CF_DISTRIBUTION_ID }}
+
+      JUNEHOMES_API_URL: ${{ vars.JUNEHOMES_API_URL }}
+      JUNEHOMES_FIREBASE_API_KEY: ${{ vars.JUNEHOMES_FIREBASE_API_KEY }}
+      JUNEHOMES_FIREBASE_AUTH_DOMAIN: ${{ vars.JUNEHOMES_FIREBASE_AUTH_DOMAIN }}
+      JUNEHOMES_TENANT_NAME: ${{ vars.JUNEHOMES_TENANT_NAME }}
+      JUNEHOMES_TENANT_INITIALS: ${{ vars.JUNEHOMES_TENANT_INITIALS }}
+      JUNEHOMES_TENANT_SUBDOMAIN: ${{ vars.JUNEHOMES_TENANT_SUBDOMAIN }}
+      JUNEHOMES_TENANT_HOST_USER_ID: ${{ vars.JUNEHOMES_TENANT_HOST_USER_ID }}
+      JUNEHOMES_S3_BUCKET: ${{ vars.JUNEHOMES_S3_BUCKET }}
+      JUNEHOMES_CF_DISTRIBUTION_ID: ${{ vars.JUNEHOMES_CF_DISTRIBUTION_ID }}
+
+      AYA_API_URL: ${{ vars.AYA_API_URL }}
+      AYA_FIREBASE_API_KEY: ${{ vars.AYA_FIREBASE_API_KEY }}
+      AYA_FIREBASE_AUTH_DOMAIN: ${{ vars.AYA_FIREBASE_AUTH_DOMAIN }}
+      AYA_TENANT_NAME: ${{ vars.AYA_TENANT_NAME }}
+      AYA_TENANT_INITIALS: ${{ vars.AYA_TENANT_INITIALS }}
+      AYA_TENANT_SUBDOMAIN: ${{ vars.AYA_TENANT_SUBDOMAIN }}
+      AYA_TENANT_HOST_USER_ID: ${{ vars.AYA_TENANT_HOST_USER_ID }}
+      AYA_S3_BUCKET: ${{ vars.AYA_S3_BUCKET }}
+      AYA_CF_DISTRIBUTION_ID: ${{ vars.AYA_CF_DISTRIBUTION_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Determine deploy targets
+        id: targets
+        run: |
+          REF="${{ github.ref_name }}"
+          if [[ "$REF" == staging* ]]; then
+            echo "targets=staging" >> "$GITHUB_OUTPUT"
+          elif [[ "$REF" == v* ]]; then
+            echo "targets=harrington junehomes aya" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag '$REF' matches neither staging* nor v* — nothing to deploy." >&2
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build & deploy each target
+        run: |
+          set -euo pipefail
+
+          for target in ${{ steps.targets.outputs.targets }}; do
+            echo "::group::Deploying $target"
+            T=$(echo "$target" | tr '[:lower:]' '[:upper:]')
+
+            api_url_var="${T}_API_URL"
+            firebase_key_var="${T}_FIREBASE_API_KEY"
+            firebase_domain_var="${T}_FIREBASE_AUTH_DOMAIN"
+            tenant_name_var="${T}_TENANT_NAME"
+            tenant_initials_var="${T}_TENANT_INITIALS"
+            tenant_subdomain_var="${T}_TENANT_SUBDOMAIN"
+            tenant_host_var="${T}_TENANT_HOST_USER_ID"
+            bucket_var="${T}_S3_BUCKET"
+            dist_var="${T}_CF_DISTRIBUTION_ID"
+
+            cat > .env.production <<EOF
+          VITE_API_URL=${!api_url_var}
+          VITE_FIREBASE_API_KEY=${!firebase_key_var}
+          VITE_FIREBASE_AUTH_DOMAIN=${!firebase_domain_var}
+          VITE_TENANT_NAME=${!tenant_name_var}
+          VITE_TENANT_INITIALS=${!tenant_initials_var}
+          VITE_TENANT_SUBDOMAIN=${!tenant_subdomain_var}
+          VITE_TENANT_HOST_USER_ID=${!tenant_host_var}
+          VITE_USE_MOCKS=false
+          EOF
+
+            npm run build
+            rm -f .env.production
+
+            BUCKET="${!bucket_var}"
+            DIST_ID="${!dist_var}"
+
+            # hashed assets: cache forever, CloudFront invalidation below covers deploy-time staleness
+            aws s3 sync dist/ "s3://$BUCKET" --delete \
+              --cache-control "public,max-age=31536000,immutable" \
+              --exclude "index.html"
+
+            # index.html: never let browsers cache it, it's the only unhashed entrypoint
+            aws s3 cp dist/index.html "s3://$BUCKET/index.html" \
+              --cache-control "no-cache,no-store,must-revalidate" \
+              --content-type "text/html"
+
+            aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*"
+
+            echo "::endgroup::"
+          done
